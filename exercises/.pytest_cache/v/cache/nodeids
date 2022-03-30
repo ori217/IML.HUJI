@@ -1,0 +1,4 @@
+[
+  "fit_gaussian_estimators.py::test_multivariate_gaussian",
+  "fit_gaussian_estimators.py::test_univariate_gaussian"
+]
