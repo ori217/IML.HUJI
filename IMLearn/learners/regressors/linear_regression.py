@@ -3,7 +3,9 @@ from typing import NoReturn
 from ...base import BaseEstimator
 import numpy as np
 from numpy.linalg import pinv
-
+from sklearn.metrics import mean_squared_error as mse
+from ...metrics import mean_square_error
+import pandas as pd
 
 class LinearRegression(BaseEstimator):
     """
@@ -49,7 +51,15 @@ class LinearRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        raise NotImplementedError()
+        # computes the best func (meaning coef vec w-hat)
+        # by finding one with the least squared error.
+        # compute it with pseudo inverse:
+        if self.include_intercept_:
+            w0 = np.array([[1] for i in range(X.shape[0])])
+            X = np.append(w0, X, 1)
+        self.coefs_ = np.linalg.pinv(X).dot(y)
+
+
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -65,7 +75,11 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        if self.include_intercept_:
+            w0 = np.array([[1] for i in range(X.shape[0])])
+            X = np.append(w0, X, 1)
+        return X.dot(self.coefs_)
+
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -84,4 +98,10 @@ class LinearRegression(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
-        raise NotImplementedError()
+        # under the assumption that using mse func from sklearn is fine
+        # according to Q in https://moodle2.cs.huji.ac.il/nu21/mod/moodleoverflow/discussion.php?d=1356
+        pred = self._predict(X)
+        k = mean_square_error(y, pred)
+        return k
+
+
