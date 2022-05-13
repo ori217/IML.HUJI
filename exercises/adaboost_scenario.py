@@ -1,6 +1,8 @@
 import numpy as np
 from typing import Tuple
 from IMLearn.learners.metalearners.adaboost import AdaBoost
+from ..IMLearn.learners.metalearners.adaboost import AdaBoost
+
 from IMLearn.learners.classifiers import DecisionStump
 from utils import *
 import plotly.graph_objects as go

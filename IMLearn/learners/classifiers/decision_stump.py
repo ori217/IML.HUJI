@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Tuple, NoReturn
 from ...base import BaseEstimator
-from ...metrics import loss_functions
 import numpy as np
 from itertools import product
 
@@ -108,9 +107,10 @@ class DecisionStump(BaseEstimator):
         For every tested threshold, values strictly below threshold are predicted as `-sign` whereas values
         which equal to or above the threshold are predicted as `sign`
         """
+        values.sort()
         losses = []
         for i in values:
-            prediction = np.array([1 if j >= i else 0 for j in values])
+            prediction = np.array([sign if j >= i else -sign for j in values])
             losses.append((i, self._loss(prediction, labels)))
         return min(losses, key=lambda x: x[1])
 
@@ -134,4 +134,8 @@ class DecisionStump(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        return loss_functions.misclassification_error(y, self._predict(X))
+        y_pred = self._predict(X)
+        err_count = [1 if np.sign(y_pred[i]) != np.sign(y[i]) else 0 for i in range(len(y_pred))].count(1)
+        return err_count
+
+        # return loss_functions.misclassification_error(y, self._predict(X))

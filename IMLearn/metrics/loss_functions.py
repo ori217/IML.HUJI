@@ -37,7 +37,7 @@ def misclassification_error(y_true: np.ndarray, y_pred: np.ndarray, normalize: b
     Misclassification of given predictions
     """
 
-    err_num = len(np.setdiff1d(y_true,y_pred))
+    err_num = len(np.setdiff1d(y_true, y_pred))
     return err_num if not normalize else err_num/len(y_true)
 
 
