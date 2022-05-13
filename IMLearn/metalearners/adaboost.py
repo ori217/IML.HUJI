@@ -1,6 +1,7 @@
 import numpy as np
 from ...base import BaseEstimator
 from typing import Callable, NoReturn
+from ...learners import classifiers.DescisionStump
 
 
 class AdaBoost(BaseEstimator):
@@ -48,6 +49,9 @@ class AdaBoost(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
+        for i in range(self.iterations_):
+
+
         raise NotImplementedError()
 
     def _predict(self, X):
