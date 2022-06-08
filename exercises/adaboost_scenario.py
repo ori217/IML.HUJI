@@ -1,8 +1,6 @@
 import numpy as np
 from typing import Tuple
-from IMLearn.learners.metalearners.adaboost import AdaBoost
-from ..IMLearn.learners.metalearners.adaboost import AdaBoost
-
+from IMLearn.metalearners.adaboost import AdaBoost
 from IMLearn.learners.classifiers import DecisionStump
 from utils import *
 import plotly.graph_objects as go
@@ -43,21 +41,93 @@ def generate_data(n: int, noise_ratio: float) -> Tuple[np.ndarray, np.ndarray]:
 def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=500):
     (train_X, train_y), (test_X, test_y) = generate_data(train_size, noise), generate_data(test_size, noise)
 
+    # for test purposes
+    # train_size = 5000
+    # n_learners = 150
+    # test_size = 500
+    (train_X, train_y), (test_X, test_y) = generate_data(train_size, noise), generate_data(test_size, noise)
     # Question 1: Train- and test errors of AdaBoost in noiseless case
-    raise NotImplementedError()
+    def wl():
+        return DecisionStump()
+
+    ada_ensemble = AdaBoost(wl, n_learners).fit(train_X,train_y)
+
+    iterations = np.linspace(1, n_learners, n_learners)
+    train_loss = []
+    test_loss = []
+    for i in np.arange(1, n_learners + 1):
+        train_loss.append(ada_ensemble.partial_loss(train_X, train_y, i))
+        test_loss.append(ada_ensemble.partial_loss(test_X, test_y, i))
+
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(x=iterations, y=train_loss))
+    fig1.add_trace(go.Scatter(x=iterations, y=test_loss))
+    fig1.update_layout(title_text="Train And Test Loss As A Function Of The Number Of Fitted Learners")
+    fig1.show()
 
     # Question 2: Plotting decision surfaces
     T = [5, 50, 100, 250]
+
     lims = np.array([np.r_[train_X, test_X].min(axis=0), np.r_[train_X, test_X].max(axis=0)]).T + np.array([-.1, .1])
-    raise NotImplementedError()
+    symbols = np.array(["circle", "x"])
+
+    fig2 = make_subplots(rows=2, cols=2, subplot_titles=[f"{t} Weak Learners" for t in T],
+                         horizontal_spacing=0.01, vertical_spacing=.03)
+    for i, t in enumerate(T):
+        f = lambda x: ada_ensemble.partial_predict(x, t)
+        fig2.add_traces([decision_surface(f, lims[0], lims[1], showscale=False),
+                         go.Scatter(x=test_X[:, 0], y=test_X[:, 1], mode="markers", showlegend=False,
+                                    marker=dict(color=test_y.astype(int), symbol=symbols[test_y.astype(int)],
+                                                colorscale=[custom[0], custom[-1]],
+                                                line=dict(color="black", width=1)))],
+                        rows=(i // 2) + 1, cols=(i % 2) + 1)
+
+    fig2.update_layout(title=rf"$\textbf{{Different amounts of Weak"
+                              f"Learners and their Decision Boundaries}}$",
+                       margin=dict(t=100)) \
+        .update_xaxes(visible=False).update_yaxes(visible=False)
+    fig2.show()
 
     # Question 3: Decision surface of best performing ensemble
-    raise NotImplementedError()
+    # raise NotImplementedError()
+
+    min_loss = min(test_loss)
+    min_loss_ind = test_loss.index(min_loss) + 1
+    fig3 = go.Figure()
+    fig3.add_traces([decision_surface(lambda X: ada_ensemble.partial_predict(X,min_loss_ind + 1), lims[0], lims[1], showscale=False),
+                    go.Scatter(x=test_X[:, 0], y=test_X[:, 1], mode="markers", showlegend=False,
+                               marker=dict(color=test_y.astype(int), symbol=symbols[test_y.astype(int)],
+                                           colorscale=[custom[0], custom[-1]],
+                                           line=dict(color="black", width=1)))])
+    fig3.update_layout(title=f"Best Ensemble Of Size {min_loss_ind},"
+                             f" With Accuracy: {1 - min_loss} \n"
+                             f"- and with noise {noise}.",
+                      margin=dict(t=100)) \
+        .update_xaxes(visible=False).update_yaxes(visible=False)
+
+    fig3.show()
+
 
     # Question 4: Decision surface with weighted samples
-    raise NotImplementedError()
+    fig4 = go.Figure()
+    norm_d = (ada_ensemble.D_ / np.max(ada_ensemble.D_)) * 5
+    fig4.add_traces([decision_surface(ada_ensemble.predict, lims[0], lims[1], showscale=False),
+                    go.Scatter(x=train_X[:, 0], y=train_X[:, 1], mode="markers", showlegend=False,
+                               marker=dict(size=norm_d, color=train_y.astype(int),
+                                           symbol=symbols[train_y.astype(int)],
+                                           colorscale=[custom[0], custom[-1]],
+                                           line=dict(color="black", width=1)))])
+    fig4.update_layout(title=f"Descion Boundries with Weights according to the Last Distribution\n "
+                             f" with Noise {noise}.",
+                      margin=dict(t=100)) \
+        .update_xaxes(visible=False).update_yaxes(visible=False)
+
+    fig4.show()
+
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    raise NotImplementedError()
+    fit_and_evaluate_adaboost(noise=0.4)
+
+
