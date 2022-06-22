@@ -37,4 +37,32 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
     validation_score: float
         Average validation score over folds
     """
-    raise NotImplementedError()
+    new_X = X
+    new_y = y
+    train_score = []
+    validation_score = []
+    m = len(y)
+    for k in range(cv):
+        train_x = np.concatenate((new_X[:int(m*(k/cv))], new_X[int(m*((k+1)/cv)):]))
+        train_y = np.concatenate((new_y[:int(m*(k/cv))], new_y[int(m*((k+1)/cv)):]))
+        test_x = new_X[int(m*(k/cv)):int(m*((k+1)/cv))]
+        test_y = new_y[int(m*(k/cv)):int(m*((k+1)/cv))]
+
+        try:
+            estimator.fit(train_x.flatten(),train_y)
+        except:
+            estimator.fit(train_x, train_y)
+        try:
+            train_score.append(scoring(estimator.predict(train_x.flatten()),train_y))
+        except:
+            train_score.append(scoring(estimator.predict(train_x), train_y))
+        try:
+            validation_score.append(scoring(estimator.predict(test_x.flatten()),test_y))
+        except:
+            validation_score.append(scoring(estimator.predict(test_x), test_y))
+
+
+    avg_train = sum(train_score) / len(train_score)
+    avg_test = sum(validation_score) / len(validation_score)
+
+    return avg_train, avg_test

@@ -34,11 +34,20 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .7
         Responses of test samples
 
     """
-    ind_train = int(len(X.index) * train_proportion)
-    train_X = X[X.index < X.index[ind_train]]
-    train_y = y[y.index < X.index[ind_train]]
-    test_X = X[X.index > X.index[ind_train]]
-    test_y = y[y.index > X.index[ind_train]]
+
+    # ind_train = int(len(X.index) * train_proportion)
+    # train_X = X[X.index < X.index[ind_train]]
+    # train_y = y[y.index < X.index[ind_train]]
+    # test_X = X[X.index > X.index[ind_train]]
+    # test_y = y[y.index > X.index[ind_train]]
+    #
+    # return train_X, train_y, test_X, test_y
+
+    train_indices = sample(list(range(len(X))), int(train_proportion * len(X)))
+    set_indexes_for_training = set(train_indices)
+    test_indices = [i for i in range(len(X)) if i not in set_indexes_for_training]
+    train_X, train_y = X.iloc[train_indices], y.iloc[train_indices]
+    test_X, test_y = X.iloc[test_indices], y.iloc[test_indices]
 
     return train_X, train_y, test_X, test_y
 
